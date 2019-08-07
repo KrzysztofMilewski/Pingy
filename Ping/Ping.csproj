@@ -52,9 +52,6 @@
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Expression.Blend.Sdk.WPF.1.0.1\lib\net45\Microsoft.Expression.Interactions.dll</HintPath>
     </Reference>
-    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
-      <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net45\OxyPlot.dll</HintPath>
-    </Reference>
     <Reference Include="ShowMeTheXAML, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ShowMeTheXAML.1.0.12\lib\net45\ShowMeTheXAML.dll</HintPath>
     </Reference>
@@ -84,7 +81,9 @@
     <Compile Include="Model\PingStatus.cs" />
     <Compile Include="Utilities\ApplicationDragBehavior.cs" />
     <Compile Include="Utilities\ApplicationShutdownBehavior.cs" />
+    <Compile Include="Utilities\AveragePingToTextColorConverter.cs" />
     <Compile Include="Utilities\IAsyncCommand.cs" />
+    <Compile Include="Utilities\PacketsLostToColorConverter.cs" />
     <Compile Include="Utilities\RelayCommand.cs" />
     <Compile Include="Utilities\RelayCommandAsync.cs" />
     <Compile Include="Utilities\TaskUtilities.cs" />

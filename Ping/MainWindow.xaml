@@ -35,6 +35,10 @@
                 <EasingDoubleKeyFrame Value="70" KeyTime="0:0:0.5"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
+
+        <md:BooleanToVisibilityConverter x:Key="bool2vis"/>
+        <util:AveragePingToTextColorConverter x:Key="ping2color"/>
+        <util:PacketsLostToColorConverter x:Key="packetslost2color"/>
     </Window.Resources>
 
     <Grid>
@@ -96,14 +100,70 @@
         </Grid>
 
         <Grid Grid.Row="1" Margin="70,0,0,0" HorizontalAlignment="Stretch">
-            <lvc:CartesianChart VerticalAlignment="Top" Height="620"/>
+            <Grid.DataContext>
+                <vm:PingStatusViewModel/>
+            </Grid.DataContext>
+
+            <lvc:CartesianChart VerticalAlignment="Top" Height="520" Series="{Binding PingPoints}" Hoverable="False">
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Labels="" MinValue="2"/>
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis Title="Latency" LabelFormatter="{Binding Formatter}" MinValue="0">
+                        <lvc:Axis.Separator>
+                            <lvc:Separator Step="20"/>
+                        </lvc:Axis.Separator>
+                    </lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+
             <Grid VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10">
-                <Button Content="Start analyzing" HorizontalAlignment="Right"/>
-                <ComboBox HorizontalAlignment="Left" Margin="100,0,0,0">
-                    <ComboBoxItem Content="EUNE"/>
-                    <ComboBoxItem Content="NA"/>
-                    <ComboBoxItem Content="OCE"/>
-                </ComboBox>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,0,0,10" Grid.Column="2">
+                    <TextBlock Text="Choose a server:" Width="130" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox Width="130" ItemsSource="{Binding LolServers}" SelectedItem="{Binding SelectedAddress}"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="2">
+                    <Button Content="Stop pinging" HorizontalAlignment="Right" 
+                            Margin="0,0,10,0" 
+                            Width="130"
+                            Command="{Binding StopPinging}"
+                            Visibility="{Binding IsPinging, Converter={StaticResource bool2vis}}"
+                            />
+
+                    <Button Content="Start analyzing" Width="130" HorizontalAlignment="Right" Command="{Binding StartPinging}"/>
+                </StackPanel>
+
+                <TextBlock Foreground="{Binding AveragePing, Converter={StaticResource ping2color}}" 
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Grid.Column="1" 
+                           Margin="0,0,0,10"
+                           >
+                        Your average ping is 
+                        <Run Text="{Binding AveragePing, Mode=OneWay, StringFormat={}{0:0.00}}"/>
+                        ms
+                </TextBlock>
+                
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{Binding PacketsLost, Converter={StaticResource packetslost2color}}"
+                           Grid.Row="1"
+                           Grid.Column="1">
+                        Packets lost: 
+                        <Run Text="{Binding PacketsLost, Mode=OneWay}"/>
+                        (<Run Text="{Binding PercentageOfLostPackets, Mode=OneWay}" />%)
+                </TextBlock>
+
             </Grid>
         </Grid>
     </Grid>
