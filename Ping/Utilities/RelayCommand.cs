@@ -11,9 +11,7 @@ namespace Ping.Utilities
         public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
             _execute = execute;
-
-            if (canExecute != null)
-                _canExecute = canExecute;
+            _canExecute = canExecute;
         }
 
         public event EventHandler CanExecuteChanged
