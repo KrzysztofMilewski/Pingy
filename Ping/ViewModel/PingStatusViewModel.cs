@@ -1,5 +1,4 @@
 ﻿using LiveCharts;
-using LiveCharts.Wpf;
 using Ping.Model;
 using Ping.Utilities;
 using System;
@@ -30,6 +29,7 @@ namespace Ping.ViewModel
         #endregion
 
         private readonly PingStatus _pingStatus = new PingStatus();
+        private int _totalNumberOfPingsCollected;
 
         public PingStatusViewModel()
         {
@@ -39,7 +39,6 @@ namespace Ping.ViewModel
                 o =>
                 {
                     IsPinging = false;
-                    _totalNumberOfPingsCollected = 0;
                     OnPropertyChanged(nameof(IsPinging));
                 },
                 o =>
@@ -50,16 +49,8 @@ namespace Ping.ViewModel
             Formatter = value => value.ToString(CultureInfo.InvariantCulture) + " ms";
         }
 
-        private IEnumerable<long> RoundTripTmes
-        {
-            get { return PingPoints[0].Values.Cast<long>(); }
-        }
-
-        private int _totalNumberOfPingsCollected;
-
         public double AveragePing { get; private set; }
         public double MaximumPing { get; private set; }
-
         public int PacketsLost { get; private set; }
         public double PercentageOfLostPackets
         {
@@ -68,10 +59,12 @@ namespace Ping.ViewModel
                 if (_totalNumberOfPingsCollected == 0)
                     return 0;
                 else
-                    return PacketsLost / (double)_totalNumberOfPingsCollected;
+                    return (100.0 * PacketsLost) / (double)_totalNumberOfPingsCollected;
             }
         }
 
+        public ICommand StartPinging { get; private set; }
+        public ICommand StopPinging { get; private set; }
 
         public bool IsPinging { get; set; }
 
@@ -92,22 +85,14 @@ namespace Ping.ViewModel
             {
                 var address = PingStatus.PredefinedAddresses[value];
                 _pingStatus.IPAddress = IPAddress.Parse(address);
-                PingPoints[0].Values.Clear();
+                PingPoints.Clear();
                 _totalNumberOfPingsCollected = 0;
+                PacketsLost = 0;
                 OnPropertyChanged(nameof(SelectedAddress));
             }
         }
 
-        public SeriesCollection PingPoints { get; private set; } = new SeriesCollection()
-        {
-            new LineSeries()
-            {
-                Values = new ChartValues<long>()
-            }
-        };
-
-        public ICommand StartPinging { get; private set; }
-        public ICommand StopPinging { get; private set; }
+        public ChartValues<long> PingPoints { get; private set; } = new ChartValues<long>();
 
         public Func<double, string> Formatter { get; private set; }
 
@@ -123,16 +108,16 @@ namespace Ping.ViewModel
                 if (result.Status != IPStatus.Success)
                 {
                     PacketsLost++;
-                    OnPropertyChanged(nameof(PacketsLost));
+                    OnPropertyChanged(nameof(PacketsLost), nameof(PercentageOfLostPackets));
                 }
                 else
                 {
-                    PingPoints[0].Values.Add(result.RoundtripTime);
+                    PingPoints.Add(result.RoundtripTime);
 
-                    if (PingPoints[0].Values.Count > 20)
-                        PingPoints[0].Values.RemoveAt(0);
+                    if (PingPoints.Count > 20)
+                        PingPoints.RemoveAt(0);
 
-                    AveragePing = RoundTripTmes.Average();
+                    AveragePing = PingPoints.Average();
                     OnPropertyChanged(nameof(AveragePing));
                 }
             }
