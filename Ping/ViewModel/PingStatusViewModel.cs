@@ -3,7 +3,9 @@ using Ping.Model;
 using Ping.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -47,6 +49,9 @@ namespace Ping.ViewModel
                 });
 
             Formatter = value => value.ToString(CultureInfo.InvariantCulture) + " ms";
+            _selectedAddressGroup = AddressesGroups[0];
+            ServerListForGroup = new ObservableCollection<string>();
+            ChangeServerListForGroup();
         }
 
         public double AveragePing { get; private set; }
@@ -68,26 +73,69 @@ namespace Ping.ViewModel
 
         public bool IsPinging { get; set; }
 
-        public List<string> LolServers
+        public List<string> AddressesGroups
         {
-            get { return PingStatus.PredefinedAddresses.Keys.ToList(); }
+            get
+            {
+                return PingStatus.PredefinedAddresses.Select(ad => ad.Title).ToList();
+            }
         }
+
+        private string _selectedAddressGroup;
+        public string SelectedAddressGroup
+        {
+            get
+            {
+                return _selectedAddressGroup;
+            }
+            set
+            {
+                if (value != _selectedAddressGroup)
+                {
+                    _selectedAddressGroup = value;
+                    ChangeServerListForGroup();
+                }
+            }
+        }
+
+        private void ChangeServerListForGroup()
+        {
+            ServerListForGroup.Clear();
+
+            var newAddresses = CurrentServerList;
+
+            foreach (var newAddress in newAddresses)
+                ServerListForGroup.Add(newAddress);
+
+            SelectedAddress = ServerListForGroup[0];
+        }
+
+        private List<string> CurrentServerList
+        {
+            get
+            {
+                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.Keys.ToList();
+            }
+        }
+
+        public ObservableCollection<string> ServerListForGroup { get; }
 
         public string SelectedAddress
         {
             get
             {
-                var currentAddress = _pingStatus.IPAddress.ToString();
-                var addressName = PingStatus.PredefinedAddresses.SingleOrDefault(x => x.Value == currentAddress).Key;
-                return addressName;
+                var ipAddress = _pingStatus.IPAddress.ToString();
+                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.SingleOrDefault(x => x.Value == ipAddress).Key;
             }
             set
             {
-                var address = PingStatus.PredefinedAddresses[value];
-                _pingStatus.IPAddress = IPAddress.Parse(address);
-                PingPoints.Clear();
-                _totalNumberOfPingsCollected = 0;
-                PacketsLost = 0;
+                Debug.WriteLine(value);
+
+                if (value == null)
+                    return;
+
+                var ipAddress = PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses[value];
+                _pingStatus.IPAddress = IPAddress.Parse(ipAddress);
                 OnPropertyChanged(nameof(SelectedAddress));
             }
         }

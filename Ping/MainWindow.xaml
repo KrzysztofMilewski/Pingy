@@ -25,22 +25,25 @@
         <Storyboard x:Key="OpenMenu">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Width" Storyboard.TargetName="Menu">
                 <EasingDoubleKeyFrame Value="70" KeyTime="0:0:0"/>
-                <EasingDoubleKeyFrame Value="200" KeyTime="0:0:0.4"/>
+                <EasingDoubleKeyFrame Value="250" KeyTime="0:0:0.4"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
 
         <Storyboard x:Key="CloseMenu">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Width" Storyboard.TargetName="Menu">
-                <EasingDoubleKeyFrame Value="200" KeyTime="0:0:0"/>
+                <EasingDoubleKeyFrame Value="250" KeyTime="0:0:0"/>
                 <EasingDoubleKeyFrame Value="70" KeyTime="0:0:0.4"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
 
         <md:BooleanToVisibilityConverter x:Key="bool2vis"/>
         <util:AveragePingToTextColorConverter x:Key="ping2color"/>
+        <util:ServerTypeNameToImageConverter x:Key="type2image"/>
         <util:PacketsLostToColorConverter x:Key="packetslost2color"/>
+        <util:NameSplitterConverter x:Key="splitName"/>
 
         <SolidColorBrush x:Key="PrimaryHueLightBrushTransparent" Color="{Binding Path=Color, Source={StaticResource PrimaryHueLightBrush}}" Opacity="0.7"/>
+       
     </Window.Resources>
 
     <Grid>
@@ -48,6 +51,10 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <Grid.DataContext>
+            <vm:PingStatusViewModel/>
+        </Grid.DataContext>
 
         <md:Card Grid.Row="0" HorizontalAlignment="Stretch" 
                  VerticalAlignment="Stretch" Margin="-2,0" 
@@ -104,26 +111,46 @@
 
             <ListBox Margin="0,100,0,0" 
                      IsEnabled="{Binding ElementName=MenuButton, Path=IsChecked}"
-                     Width="200" Padding="0">
+                     Width="250" Padding="0"
+                     ItemsSource="{Binding AddressesGroups}"
+                     SelectedItem="{Binding SelectedAddressGroup}">
+
+                <ListBox.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource MaterialDesignListBoxItem}" TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
                 
-                <ListBoxItem Padding="0">
-                    <StackPanel Orientation="Horizontal" Width="200">
-                        <Image Source="Images/lol-logo.png" Width="70" Height="50"/>
-                        <TextBlock Text="League of Legends" 
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Width="230" Height="50" Margin="0,10,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding Converter={StaticResource type2image}}" 
+                                   Width="70" Height="50"/>
+                            <TextBlock 
+                                   Grid.Column="1"
+                                   Text="{Binding Converter={StaticResource splitName}}" 
                                    VerticalAlignment="Center"
+                                   TextAlignment="Center"
                                    Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}"/>
-                    </StackPanel>
-                </ListBoxItem>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
             
         </Grid>
 
         <Grid Grid.Row="1" Margin="70,0,0,0" HorizontalAlignment="Stretch">
-            <Grid.DataContext>
-                <vm:PingStatusViewModel/>
-            </Grid.DataContext>
 
-            <lvc:CartesianChart VerticalAlignment="Top" Margin="0,10,0,0" Height="580" Hoverable="False" DataTooltip="{x:Null}">
+            <!--<lvc:CartesianChart VerticalAlignment="Top" Margin="0,10,0,0" Height="580" Hoverable="False" DataTooltip="{x:Null}">
                 <lvc:CartesianChart.Series>
                     <lvc:LineSeries Stroke="{DynamicResource PrimaryHueMidBrush}" 
                                     Fill="{DynamicResource PrimaryHueLightBrushTransparent}"
@@ -139,7 +166,7 @@
                         </lvc:Axis.Separator>
                     </lvc:Axis>
                 </lvc:CartesianChart.AxisY>
-            </lvc:CartesianChart>
+            </lvc:CartesianChart>-->
 
             <Grid VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10">
 
@@ -155,7 +182,9 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,0,0,10" Grid.Column="2">
                     <TextBlock Text="Choose a server:" Width="130" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox Width="130" ItemsSource="{Binding LolServers}" SelectedItem="{Binding SelectedAddress}"/>
+                    <ComboBox Width="130" ItemsSource="{Binding ServerListForGroup}"
+                              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
+                              IsSynchronizedWithCurrentItem="True"/>
                 </StackPanel>
 
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="2">
