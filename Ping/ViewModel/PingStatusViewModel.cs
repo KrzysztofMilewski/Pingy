@@ -5,10 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -32,6 +30,16 @@ namespace Ping.ViewModel
 
         private readonly PingStatus _pingStatus = new PingStatus();
         private int _totalNumberOfPingsCollected;
+        private string _addressTypedManually;
+        private string _selectedAddressGroup;
+
+        private List<string> CurrentServerList
+        {
+            get
+            {
+                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.Keys.ToList();
+            }
+        }
 
         public PingStatusViewModel()
         {
@@ -48,6 +56,18 @@ namespace Ping.ViewModel
                     return IsPinging;
                 });
 
+            SwitchToManualMode = new RelayCommand(
+                o =>
+                {
+                    ManualMode = true;
+                    SelectedAddressGroup = null;
+                    OnPropertyChanged(nameof(ManualMode), nameof(SelectedAddressGroup));
+                },
+                o =>
+                {
+                    return !ManualMode;
+                });
+
             Formatter = value => value.ToString(CultureInfo.InvariantCulture) + " ms";
             _selectedAddressGroup = AddressesGroups[0];
             ServerListForGroup = new ObservableCollection<string>();
@@ -57,6 +77,7 @@ namespace Ping.ViewModel
         public double AveragePing { get; private set; }
         public double MaximumPing { get; private set; }
         public int PacketsLost { get; private set; }
+        public bool ManualMode { get; set; }
         public double PercentageOfLostPackets
         {
             get
@@ -68,10 +89,23 @@ namespace Ping.ViewModel
             }
         }
 
-        public ICommand StartPinging { get; private set; }
-        public ICommand StopPinging { get; private set; }
+        public string AddressTypedManually
+        {
+            get { return _addressTypedManually; }
+            set
+            {
+                _pingStatus.ServerToPing = value;
+                _addressTypedManually = value;
+                ResetStatistics();
+            }
+        }
 
         public bool IsPinging { get; set; }
+
+        public ICommand StartPinging { get; private set; }
+        public ICommand StopPinging { get; private set; }
+        public ICommand SwitchToManualMode { get; private set; }
+
 
         public List<string> AddressesGroups
         {
@@ -81,7 +115,6 @@ namespace Ping.ViewModel
             }
         }
 
-        private string _selectedAddressGroup;
         public string SelectedAddressGroup
         {
             get
@@ -90,12 +123,53 @@ namespace Ping.ViewModel
             }
             set
             {
+                if (value == null)
+                {
+                    _selectedAddressGroup = null;
+                    return;
+                }
+
                 if (value != _selectedAddressGroup)
                 {
                     _selectedAddressGroup = value;
+                    ManualMode = false;
+                    OnPropertyChanged(nameof(ManualMode));
                     ChangeServerListForGroup();
                 }
             }
+        }
+
+        public ObservableCollection<string> ServerListForGroup { get; }
+
+        public string SelectedAddress
+        {
+            get
+            {
+                var ipAddress = _pingStatus.ServerToPing;
+                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.SingleOrDefault(x => x.Value == ipAddress).Key;
+            }
+            set
+            {
+                if (value == null)
+                    return;
+
+                var ipAddress = PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses[value];
+                _pingStatus.ServerToPing = ipAddress;
+                ResetStatistics();
+            }
+        }
+
+        public ChartValues<long> PingPoints { get; private set; } = new ChartValues<long>();
+
+        public Func<double, string> Formatter { get; private set; }
+
+        private void ResetStatistics()
+        {
+            PingPoints.Clear();
+            PacketsLost = 0;
+            _totalNumberOfPingsCollected = 0;
+            AveragePing = 0;
+            OnPropertyChanged(nameof(SelectedAddress), nameof(AveragePing), nameof(PacketsLost));
         }
 
         private void ChangeServerListForGroup()
@@ -109,40 +183,6 @@ namespace Ping.ViewModel
 
             SelectedAddress = ServerListForGroup[0];
         }
-
-        private List<string> CurrentServerList
-        {
-            get
-            {
-                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.Keys.ToList();
-            }
-        }
-
-        public ObservableCollection<string> ServerListForGroup { get; }
-
-        public string SelectedAddress
-        {
-            get
-            {
-                var ipAddress = _pingStatus.IPAddress.ToString();
-                return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.SingleOrDefault(x => x.Value == ipAddress).Key;
-            }
-            set
-            {
-                Debug.WriteLine(value);
-
-                if (value == null)
-                    return;
-
-                var ipAddress = PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses[value];
-                _pingStatus.IPAddress = IPAddress.Parse(ipAddress);
-                OnPropertyChanged(nameof(SelectedAddress));
-            }
-        }
-
-        public ChartValues<long> PingPoints { get; private set; } = new ChartValues<long>();
-
-        public Func<double, string> Formatter { get; private set; }
 
         private async Task GetPingData(object parameter)
         {
@@ -167,6 +207,9 @@ namespace Ping.ViewModel
 
                     AveragePing = PingPoints.Average();
                     OnPropertyChanged(nameof(AveragePing));
+
+                    if (PacketsLost != 0)
+                        OnPropertyChanged(nameof(PercentageOfLostPackets));
                 }
             }
         }

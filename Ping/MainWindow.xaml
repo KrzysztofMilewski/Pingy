@@ -37,6 +37,8 @@
         </Storyboard>
 
         <md:BooleanToVisibilityConverter x:Key="bool2vis"/>
+        <md:BooleanToVisibilityConverter x:Key="reversedBool2vis" TrueValue="Collapsed" FalseValue="Visible"/>
+
         <util:AveragePingToTextColorConverter x:Key="ping2color"/>
         <util:ServerTypeNameToImageConverter x:Key="type2image"/>
         <util:PacketsLostToColorConverter x:Key="packetslost2color"/>
@@ -55,6 +57,10 @@
         <Grid.DataContext>
             <vm:PingStatusViewModel/>
         </Grid.DataContext>
+
+        <Grid.InputBindings>
+            <KeyBinding Key="Esc" Command="{Binding StopPinging}"/>
+        </Grid.InputBindings>
 
         <md:Card Grid.Row="0" HorizontalAlignment="Stretch" 
                  VerticalAlignment="Stretch" Margin="-2,0" 
@@ -86,6 +92,7 @@
         </md:Card>
 
         <Grid Panel.ZIndex="10" Grid.Row="1" HorizontalAlignment="Left" Width="70" x:Name="Menu">
+
             <md:Card HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                      Background="{DynamicResource PrimaryHueMidBrush}"
                      Margin="-2,0,0,0">
@@ -105,6 +112,22 @@
                             <BeginStoryboard Storyboard="{StaticResource CloseMenu}"/>
                         </EventTrigger>
                     </ToggleButton.Triggers>
+                    
+                    <!--<ToggleButton.Style>
+                        <Style BasedOn="" TargetType="ToggleButton">
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding ElementName=Menu, Path=IsFocused}" Value="False"/>
+                                        <Condition Binding="{Binding ElementName=MenuButton, Path=IsChecked}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                        <Setter Property="ToggleButton.IsChecked" Value="False"/>
+                                    </MultiDataTrigger.Setters>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ToggleButton.Style>-->
                 </ToggleButton>
 
             </md:Card>
@@ -145,16 +168,25 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            
+
+            <Button Content="Enter address manually"
+                    VerticalAlignment="Bottom"
+                    Style="{DynamicResource MaterialDesignRaisedAccentButton}"
+                    Margin="10,0,10,50" Width="230"
+                    Visibility="{Binding ElementName=MenuButton, Path=IsChecked,Converter={StaticResource bool2vis}}"
+                    Command="{Binding SwitchToManualMode}"/>
+
         </Grid>
 
         <Grid Grid.Row="1" Margin="70,0,0,0" HorizontalAlignment="Stretch">
 
-            <!--<lvc:CartesianChart VerticalAlignment="Top" Margin="0,10,0,0" Height="580" Hoverable="False" DataTooltip="{x:Null}">
+            <lvc:CartesianChart VerticalAlignment="Top" Margin="0,10,0,0" Height="580" Hoverable="False" DataTooltip="{x:Null}">
                 <lvc:CartesianChart.Series>
                     <lvc:LineSeries Stroke="{DynamicResource PrimaryHueMidBrush}" 
                                     Fill="{DynamicResource PrimaryHueLightBrushTransparent}"
-                                    Values="{Binding PingPoints}"/>
+                                    Values="{Binding PingPoints}"
+                                    LineSmoothness="0"
+                                    />
                 </lvc:CartesianChart.Series>
                 <lvc:CartesianChart.AxisX>
                     <lvc:Axis Labels="" MinValue="2"/>
@@ -166,7 +198,7 @@
                         </lvc:Axis.Separator>
                     </lvc:Axis>
                 </lvc:CartesianChart.AxisY>
-            </lvc:CartesianChart>-->
+            </lvc:CartesianChart>
 
             <Grid VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10">
 
@@ -180,27 +212,44 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0,0,0,10" Grid.Column="2">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" 
+                            VerticalAlignment="Stretch" Margin="0,0,0,10" Grid.Column="1"
+                            Visibility="{Binding ManualMode, Converter={StaticResource reversedBool2vis}}">
+                    
                     <TextBlock Text="Choose a server:" Width="130" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox Width="130" ItemsSource="{Binding ServerListForGroup}"
+                    <ComboBox Width="250" ItemsSource="{Binding ServerListForGroup}"
                               SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
                               IsSynchronizedWithCurrentItem="True"/>
                 </StackPanel>
 
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="2">
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Stretch" 
+                            VerticalAlignment="Stretch" 
+                            Margin="0,0,0,10" Grid.Column="1"
+                            Visibility="{Binding ManualMode, Converter={StaticResource bool2vis}}">
+                    
+                    <TextBlock Text="IP address or endpoint's URL: " Width="200" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                    <TextBox Width="185" Margin="0,0,0,0" Text="{Binding AddressTypedManually}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding StartPinging}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="1">
                     <Button Content="Stop pinging" HorizontalAlignment="Right" 
                             Margin="0,0,10,0" 
-                            Width="130"
+                            Width="190"
                             Command="{Binding StopPinging}"
                             Visibility="{Binding IsPinging, Converter={StaticResource bool2vis}}"
                             />
 
-                    <Button Content="Start analyzing" Width="130" HorizontalAlignment="Right" Command="{Binding StartPinging}"/>
+                    <Button Content="Start analyzing" Width="190" HorizontalAlignment="Right" Command="{Binding StartPinging}"/>
                 </StackPanel>
 
                 <TextBlock Foreground="{Binding AveragePing, Converter={StaticResource ping2color}}" 
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Grid.Column="1" 
                            Margin="0,0,0,10"
                            >
                         Your average ping is 
@@ -210,8 +259,7 @@
                 
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                            Foreground="{Binding PacketsLost, Converter={StaticResource packetslost2color}}"
-                           Grid.Row="1"
-                           Grid.Column="1">
+                           Grid.Row="1">
                         Packets lost: 
                         <Run Text="{Binding PacketsLost, Mode=OneWay}"/>
                         (<Run Text="{Binding PercentageOfLostPackets, Mode=OneWay, StringFormat={}{0:0.00}}" />%)
