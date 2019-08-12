@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Media;
 
-namespace Ping.Utilities
+namespace Ping.Converters
 {
-    public class NameSplitterConverter : IValueConverter
+    public class PacketsLostToColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var serverTypeName = (string)value;
+            int packetsLost = (int)value;
 
-            if (serverTypeName.Length < 20)
-                return serverTypeName;
+            if (packetsLost == 0)
+                return Brushes.Green;
             else
-                return serverTypeName.Substring(0, serverTypeName.IndexOf(' ')) + "\r\n" + serverTypeName.Substring(serverTypeName.IndexOf(' ') + 1);
+                return Brushes.Red;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -79,15 +79,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Model\PingStatus.cs" />
-    <Compile Include="Utilities\ApplicationDragBehavior.cs" />
-    <Compile Include="Utilities\ApplicationShutdownBehavior.cs" />
-    <Compile Include="Utilities\AveragePingToTextColorConverter.cs" />
+    <Compile Include="Behaviors\ApplicationDragBehavior.cs" />
+    <Compile Include="Behaviors\ApplicationShutdownBehavior.cs" />
+    <Compile Include="Converters\AveragePingToTextColorConverter.cs" />
     <Compile Include="Utilities\IAsyncCommand.cs" />
-    <Compile Include="Utilities\NameSplitterConverter.cs" />
-    <Compile Include="Utilities\PacketsLostToColorConverter.cs" />
+    <Compile Include="Behaviors\MenuCloseOnLosingFocusBehavior.cs" />
+    <Compile Include="Converters\NameSplitterConverter.cs" />
+    <Compile Include="Converters\PacketsLostToColorConverter.cs" />
     <Compile Include="Utilities\RelayCommand.cs" />
     <Compile Include="Utilities\RelayCommandAsync.cs" />
-    <Compile Include="Utilities\ServerTypeNameToImageConverter.cs" />
+    <Compile Include="Converters\ServerTypeNameToImageConverter.cs" />
     <Compile Include="Utilities\TaskUtilities.cs" />
     <Compile Include="ViewModel\PingStatusViewModel.cs" />
     <Page Include="MainWindow.xaml">

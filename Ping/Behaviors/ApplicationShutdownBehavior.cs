@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Interactivity;
 
-namespace Ping.Utilities
+namespace Ping.Behaviors
 {
     public class ApplicationShutdownBehavior : Behavior<Button>
     {

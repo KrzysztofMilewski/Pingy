@@ -9,6 +9,8 @@
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         xmlns:local="clr-namespace:Ping"
         xmlns:vm="clr-namespace:Ping.ViewModel"
+        xmlns:conv="clr-namespace:Ping.Converters"
+        xmlns:behaviors="clr-namespace:Ping.Behaviors"
         mc:Ignorable="d"
         Title="Ping" Height="720" Width="1280"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -39,13 +41,13 @@
         <md:BooleanToVisibilityConverter x:Key="bool2vis"/>
         <md:BooleanToVisibilityConverter x:Key="reversedBool2vis" TrueValue="Collapsed" FalseValue="Visible"/>
 
-        <util:AveragePingToTextColorConverter x:Key="ping2color"/>
-        <util:ServerTypeNameToImageConverter x:Key="type2image"/>
-        <util:PacketsLostToColorConverter x:Key="packetslost2color"/>
-        <util:NameSplitterConverter x:Key="splitName"/>
+        <conv:AveragePingToTextColorConverter x:Key="ping2color"/>
+        <conv:ServerTypeNameToImageConverter x:Key="type2image"/>
+        <conv:PacketsLostToColorConverter x:Key="packetslost2color"/>
+        <conv:NameSplitterConverter x:Key="splitName"/>
 
         <SolidColorBrush x:Key="PrimaryHueLightBrushTransparent" Color="{Binding Path=Color, Source={StaticResource PrimaryHueLightBrush}}" Opacity="0.7"/>
-       
+
     </Window.Resources>
 
     <Grid>
@@ -66,7 +68,7 @@
                  VerticalAlignment="Stretch" Margin="-2,0" 
                  Background="{DynamicResource PrimaryHueDarkBrush}">
             <i:Interaction.Behaviors>
-                <util:ApplicationDragBehavior/>
+                <behaviors:ApplicationDragBehavior/>
             </i:Interaction.Behaviors>
 
             <Grid>
@@ -81,7 +83,7 @@
                     Height="30" Width="30" Margin="0,0,10,0">
 
                     <i:Interaction.Behaviors>
-                        <util:ApplicationShutdownBehavior/>
+                        <behaviors:ApplicationShutdownBehavior/>
                     </i:Interaction.Behaviors>
 
                     <md:PackIcon Kind="Close" Foreground="White" Height="30" Width="30" 
@@ -100,7 +102,7 @@
                 <ToggleButton VerticalAlignment="Top"
                           HorizontalAlignment="Right"
                           Style="{DynamicResource MaterialDesignHamburgerToggleButton}"
-                          Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}"
+                          Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
                           Width="70" Margin="0,10,0,0"
                           x:Name="MenuButton"
                           >
@@ -112,31 +114,26 @@
                             <BeginStoryboard Storyboard="{StaticResource CloseMenu}"/>
                         </EventTrigger>
                     </ToggleButton.Triggers>
-                    
-                    <!--<ToggleButton.Style>
-                        <Style BasedOn="" TargetType="ToggleButton">
-                            <Style.Triggers>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding ElementName=Menu, Path=IsFocused}" Value="False"/>
-                                        <Condition Binding="{Binding ElementName=MenuButton, Path=IsChecked}" Value="True"/>
-                                    </MultiDataTrigger.Conditions>
-                                    <MultiDataTrigger.Setters>
-                                        <Setter Property="ToggleButton.IsChecked" Value="False"/>
-                                    </MultiDataTrigger.Setters>
-                                </MultiDataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ToggleButton.Style>-->
                 </ToggleButton>
 
             </md:Card>
 
-            <ListBox Margin="0,100,0,0" 
+            <TextBlock Text="Choose a game" HorizontalAlignment="Center"
+                       Visibility="{Binding ElementName=MenuButton, Path=IsChecked, Converter={StaticResource bool2vis}}"
+                       Margin="0,80,0,0"
+                       FontSize="20"
+                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                       />
+
+            <ListBox Margin="0,140,0,0" 
                      IsEnabled="{Binding ElementName=MenuButton, Path=IsChecked}"
                      Width="250" Padding="0"
                      ItemsSource="{Binding AddressesGroups}"
                      SelectedItem="{Binding SelectedAddressGroup}">
+
+                <i:Interaction.Behaviors>
+                    <behaviors:MenuCloseOnLosingFocusBehavior/>
+                </i:Interaction.Behaviors>
 
                 <ListBox.ItemContainerStyle>
                     <Style BasedOn="{StaticResource MaterialDesignListBoxItem}" TargetType="ListBoxItem">
@@ -148,7 +145,7 @@
                         </Style.Triggers>
                     </Style>
                 </ListBox.ItemContainerStyle>
-                
+
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Width="230" Height="50" Margin="0,10,0,10">
@@ -174,12 +171,26 @@
                     Style="{DynamicResource MaterialDesignRaisedAccentButton}"
                     Margin="10,0,10,50" Width="230"
                     Visibility="{Binding ElementName=MenuButton, Path=IsChecked,Converter={StaticResource bool2vis}}"
-                    Command="{Binding SwitchToManualMode}"/>
+                    Command="{Binding SwitchToManualMode}">
+                <Button.Triggers>
+                    <EventTrigger RoutedEvent="Button.Click">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <BooleanAnimationUsingKeyFrames Storyboard.TargetName="MenuButton"
+                                                               Storyboard.TargetProperty="(ToggleButton.IsChecked)">
+                                    <DiscreteBooleanKeyFrame KeyTime="0:0:0"
+                                                             Value="False"/>
+                                </BooleanAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Button.Triggers>
+            </Button>
 
         </Grid>
 
         <Grid Grid.Row="1" Margin="70,0,0,0" HorizontalAlignment="Stretch">
-
+            
             <lvc:CartesianChart VerticalAlignment="Top" Margin="0,10,0,0" Height="580" Hoverable="False" DataTooltip="{x:Null}">
                 <lvc:CartesianChart.Series>
                     <lvc:LineSeries Stroke="{DynamicResource PrimaryHueMidBrush}" 
@@ -214,8 +225,9 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" 
                             VerticalAlignment="Stretch" Margin="0,0,0,10" Grid.Column="1"
-                            Visibility="{Binding ManualMode, Converter={StaticResource reversedBool2vis}}">
-                    
+                            Visibility="{Binding ManualMode, Converter={StaticResource reversedBool2vis}}"
+                            IsEnabled="{Binding ManualMode, Converter={StaticResource reversedBool2vis}}">
+
                     <TextBlock Text="Choose a server:" Width="130" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <ComboBox Width="250" ItemsSource="{Binding ServerListForGroup}"
                               SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
@@ -227,7 +239,7 @@
                             VerticalAlignment="Stretch" 
                             Margin="0,0,0,10" Grid.Column="1"
                             Visibility="{Binding ManualMode, Converter={StaticResource bool2vis}}">
-                    
+
                     <TextBlock Text="IP address or endpoint's URL: " Width="200" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                     <TextBox Width="185" Margin="0,0,0,0" Text="{Binding AddressTypedManually}">
@@ -238,14 +250,14 @@
                 </StackPanel>
 
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="1">
+                    <Button Content="Start analyzing" Width="190" HorizontalAlignment="Right" Command="{Binding StartPinging}"/>
+
                     <Button Content="Stop pinging" HorizontalAlignment="Right" 
-                            Margin="0,0,10,0" 
+                            Margin="10,0,0,0" 
                             Width="190"
                             Command="{Binding StopPinging}"
                             Visibility="{Binding IsPinging, Converter={StaticResource bool2vis}}"
                             />
-
-                    <Button Content="Start analyzing" Width="190" HorizontalAlignment="Right" Command="{Binding StartPinging}"/>
                 </StackPanel>
 
                 <TextBlock Foreground="{Binding AveragePing, Converter={StaticResource ping2color}}" 
@@ -256,7 +268,7 @@
                         <Run Text="{Binding AveragePing, Mode=OneWay, StringFormat={}{0:0.00}}"/>
                         ms
                 </TextBlock>
-                
+
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                            Foreground="{Binding PacketsLost, Converter={StaticResource packetslost2color}}"
                            Grid.Row="1">

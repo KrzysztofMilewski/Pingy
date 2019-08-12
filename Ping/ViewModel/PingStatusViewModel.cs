@@ -145,6 +145,9 @@ namespace Ping.ViewModel
         {
             get
             {
+                if (SelectedAddressGroup == null)
+                    return null;
+
                 var ipAddress = _pingStatus.ServerToPing;
                 return PingStatus.PredefinedAddresses.SingleOrDefault(ad => ad.Title == SelectedAddressGroup).Addresses.SingleOrDefault(x => x.Value == ipAddress).Key;
             }

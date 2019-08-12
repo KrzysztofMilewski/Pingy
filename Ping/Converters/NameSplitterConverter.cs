@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using System.Windows.Media;
 
-namespace Ping.Utilities
+namespace Ping.Converters
 {
-    public class AveragePingToTextColorConverter : IValueConverter
+    public class NameSplitterConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            double averagePing = (double)value;
+            var serverTypeName = (string)value;
 
-            if (averagePing < 100)
-                return Brushes.Green;
-            else if (averagePing > 100 && averagePing < 250)
-                return Brushes.DarkOrange;
+            if (serverTypeName.Length < 20)
+                return serverTypeName;
             else
-                return Brushes.Red;
+                return serverTypeName.Substring(0, serverTypeName.IndexOf(' ')) + "\r\n" + serverTypeName.Substring(serverTypeName.IndexOf(' ') + 1);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

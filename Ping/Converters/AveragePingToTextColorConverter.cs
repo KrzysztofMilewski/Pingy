@@ -3,16 +3,18 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace Ping.Utilities
+namespace Ping.Converters
 {
-    public class PacketsLostToColorConverter : IValueConverter
+    public class AveragePingToTextColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            int packetsLost = (int)value;
+            double averagePing = (double)value;
 
-            if (packetsLost == 0)
+            if (averagePing < 100)
                 return Brushes.Green;
+            else if (averagePing > 100 && averagePing < 250)
+                return Brushes.DarkOrange;
             else
                 return Brushes.Red;
         }

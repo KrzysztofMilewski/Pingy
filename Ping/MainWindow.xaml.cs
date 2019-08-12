@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Diagnostics;
+using System.Windows;
 
 namespace Ping
 {
