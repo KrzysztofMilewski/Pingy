@@ -90,6 +90,7 @@
     <Compile Include="Utilities\RelayCommandAsync.cs" />
     <Compile Include="Converters\ServerTypeNameToImageConverter.cs" />
     <Compile Include="Utilities\TaskUtilities.cs" />
+    <Compile Include="Utilities\DisplayErrorMessage.cs" />
     <Compile Include="ViewModel\PingStatusViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

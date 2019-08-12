@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Ping.ViewModel
@@ -43,7 +44,7 @@ namespace Ping.ViewModel
 
         public PingStatusViewModel()
         {
-            StartPinging = new RelayCommandAsync<object>(GetPingData);
+            StartPinging = new RelayCommandAsync<object>(GetPingData, null, new DisplayErrorMessage(HandleError));
 
             StopPinging = new RelayCommand(
                 o =>
@@ -215,6 +216,13 @@ namespace Ping.ViewModel
                         OnPropertyChanged(nameof(PercentageOfLostPackets));
                 }
             }
+        }
+
+        private void HandleError(Exception ex)
+        {
+            IsPinging = false;
+            OnPropertyChanged(nameof(IsPinging));
+            MessageBox.Show(ex.Message);
         }
     }
 }

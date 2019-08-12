@@ -242,11 +242,7 @@
 
                     <TextBlock Text="IP address or endpoint's URL: " Width="200" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
-                    <TextBox Width="185" Margin="0,0,0,0" Text="{Binding AddressTypedManually}">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Return" Command="{Binding StartPinging}"/>
-                        </TextBox.InputBindings>
-                    </TextBox>
+                    <TextBox Width="185" Margin="0,0,0,0" Text="{Binding AddressTypedManually}"/>
                 </StackPanel>
 
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.Column="1">

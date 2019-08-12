@@ -38,10 +38,9 @@ namespace Ping.Utilities
                 finally
                 {
                     _isExecuting = false;
+                    RaiseCanExecuteChanged();
                 }
             }
-
-            RaiseCanExecuteChanged();
         }
 
         public void RaiseCanExecuteChanged()
