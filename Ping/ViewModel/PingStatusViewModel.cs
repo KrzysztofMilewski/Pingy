@@ -45,13 +45,7 @@ namespace Ping.ViewModel
         public PingStatusViewModel()
         {
             StartPinging = new RelayCommandAsync<object>(GetPingData,
-                o =>
-                {
-                    if (ManualMode && string.IsNullOrWhiteSpace(AddressTypedManually))
-                        return false;
-                    else
-                        return !ErrorOccurred;
-                },
+                null,
                 new DisplayErrorMessage(HandleError));
 
             StopPinging = new RelayCommand(
@@ -70,7 +64,8 @@ namespace Ping.ViewModel
                 {
                     ManualMode = true;
                     SelectedAddressGroup = null;
-                    OnPropertyChanged(nameof(ManualMode), nameof(SelectedAddressGroup));
+                    AddressTypedManually = "";
+                    OnPropertyChanged(nameof(ManualMode), nameof(SelectedAddressGroup), nameof(AddressTypedManually));
                 },
                 o =>
                 {

@@ -22,7 +22,10 @@ namespace Ping.Utilities
 
         public bool CanExecute(T parameter)
         {
-            return !_isExecuting && (_canExecute?.Invoke(parameter) ?? true);
+            if (_canExecute == null)
+                return !_isExecuting;
+            else
+                return !_isExecuting && _canExecute(parameter);
         }
 
         public async Task ExecuteAsync(T parameter)
