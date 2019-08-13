@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 
 namespace Ping.ViewModel
@@ -44,7 +44,15 @@ namespace Ping.ViewModel
 
         public PingStatusViewModel()
         {
-            StartPinging = new RelayCommandAsync<object>(GetPingData, null, new DisplayErrorMessage(HandleError));
+            StartPinging = new RelayCommandAsync<object>(GetPingData,
+                o =>
+                {
+                    if (ManualMode && string.IsNullOrWhiteSpace(AddressTypedManually))
+                        return false;
+                    else
+                        return !ErrorOccurred;
+                },
+                new DisplayErrorMessage(HandleError));
 
             StopPinging = new RelayCommand(
                 o =>
@@ -67,6 +75,18 @@ namespace Ping.ViewModel
                 o =>
                 {
                     return !ManualMode;
+                });
+
+            AcceptError = new RelayCommand(
+                o =>
+                {
+                    ErrorOccurred = false;
+                    OnPropertyChanged(nameof(ErrorOccurred));
+                    Debug.WriteLine(ErrorOccurred);
+                },
+                o =>
+                {
+                    return ErrorOccurred;
                 });
 
             Formatter = value => value.ToString(CultureInfo.InvariantCulture) + " ms";
@@ -106,7 +126,7 @@ namespace Ping.ViewModel
         public ICommand StartPinging { get; private set; }
         public ICommand StopPinging { get; private set; }
         public ICommand SwitchToManualMode { get; private set; }
-
+        public ICommand AcceptError { get; private set; }
 
         public List<string> AddressesGroups
         {
@@ -162,6 +182,8 @@ namespace Ping.ViewModel
                 ResetStatistics();
             }
         }
+
+        public bool ErrorOccurred { get; set; }
 
         public ChartValues<long> PingPoints { get; private set; } = new ChartValues<long>();
 
@@ -221,8 +243,10 @@ namespace Ping.ViewModel
         private void HandleError(Exception ex)
         {
             IsPinging = false;
-            OnPropertyChanged(nameof(IsPinging));
-            MessageBox.Show(ex.Message);
+            ErrorOccurred = true;
+            OnPropertyChanged(nameof(IsPinging), nameof(ErrorOccurred));
+
+            Debug.WriteLine(ErrorOccurred);
         }
     }
 }
