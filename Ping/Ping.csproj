@@ -78,6 +78,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\Addresses.cs" />
+    <Compile Include="Model\AddressesDictionary.cs" />
     <Compile Include="Model\PingStatus.cs" />
     <Compile Include="Behaviors\ApplicationDragBehavior.cs" />
     <Compile Include="Behaviors\ApplicationShutdownBehavior.cs" />
